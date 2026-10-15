@@ -1,4 +1,4 @@
-from nfl_data_loader import (
+from analytics.nfl_data_loader import (
     load_nfl_games,
     home_team_win,
     add_team_win_pct,

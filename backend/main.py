@@ -1,9 +1,20 @@
 from fastapi import FastAPI
-from nfl_model import predict_nfl_game
+from fastapi.middleware.cors import CORSMiddleware
+from backend.nfl_model import predict_nfl_game
+import warnings
 
 app = FastAPI()
 
+# CORS settings
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/nfl/predict")
-def get_nfl_prediction(team1: str, team2: str):
+def predict(team1: str, team2: str):
+    warnings.filterwarnings("ignore", category=UserWarning)
     return predict_nfl_game(team1, team2)

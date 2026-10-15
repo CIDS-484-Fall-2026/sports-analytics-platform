@@ -1,12 +1,13 @@
 import joblib
 
-from nfl_data_loader import (
+from analytics.nfl_data_loader import (
     load_nfl_games,
     home_team_win,
     add_team_win_pct,
     add_home_indicator,
     add_rolling_point_diff,
 )
+
 
 # Load trained model
 model = joblib.load("analytics/nfl_model.pkl")
@@ -42,6 +43,9 @@ def get_team_features(team_name, df):
 
 
 def predict_nfl_game(team1, team2):
+    import warnings
+    warnings.filterwarnings("ignore", category=UserWarning)
+
     home = get_team_features(team1, df)
     away = get_team_features(team2, df)
 
@@ -52,13 +56,13 @@ def predict_nfl_game(team1, team2):
             "team2": team2,
         }
 
-    score_diff = 0  # placeholder
+    score_diff = 0
 
     features = [
         score_diff,
         home["win_pct"],
         away["win_pct"],
-        1,  # is_home
+        1,
         home["point_diff_last3"],
         away["point_diff_last3"],
     ]
@@ -70,3 +74,6 @@ def predict_nfl_game(team1, team2):
         "team2": team2,
         "probability": float(prob),
     }
+
+
+
