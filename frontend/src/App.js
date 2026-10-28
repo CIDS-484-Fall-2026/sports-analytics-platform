@@ -1,34 +1,24 @@
 import PredictionForm from "./PredictionForm";
+import GameTicker from "./GameTicker";
+import "./App.css";
 
 function App() {
+  // The page keeps the game ticker above the prediction dashboard.
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        padding: "40px 20px",
-        background: "linear-gradient(135deg, #0f0f0f, #1c1c1c, #2a2a2a)",
-        color: "white",
-        textAlign: "center"
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "36px",
-          fontWeight: "700",
-          marginBottom: "40px"
-        }}
-      >
-        NFL Prediction Dashboard
-      </h1>
-
-      <div
-        style={{
-          maxWidth: "600px",
-          margin: "0 auto"
-        }}
-      >
-        <PredictionForm />
-      </div>
+    <div className="dashboard">
+      <GameTicker />
+      <main className="dashboard__content">
+        {/* Introduce the dashboard and explain what the prediction tool does. */}
+        <p className="dashboard__eyebrow">Game-day insights</p>
+        <h1 className="dashboard__title">NFL Prediction Dashboard</h1>
+        <p className="dashboard__subtitle">
+          Compare two teams and explore the model’s projected win probability.
+        </p>
+        {/* Keep the prediction form centered and sized for the page. */}
+        <div className="dashboard__form">
+          <PredictionForm />
+        </div>
+      </main>
     </div>
   );
 }

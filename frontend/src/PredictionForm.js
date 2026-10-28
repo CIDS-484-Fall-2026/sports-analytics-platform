@@ -2,42 +2,42 @@ import { useState } from "react";
 import { TEAMS } from "./teams";
 
 function PredictionForm() {
-  // Selected teams
+  // Remember which teams the user selected and the latest prediction response.
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
-
-  // Backend result
   const [result, setResult] = useState(null);
-
-  // Loading state
+  // Use this flag to show progress and prevent another request while loading.
   const [loading, setLoading] = useState(false);
 
-  // Draggable widget state
-  const [pos, setPos] = useState({ x: 100, y: 100 });
+  // Track the card's small drag offset and where the pointer first grabbed it.
+  const [pos, setPos] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-  const startDrag = (e) => {
+  // Start moving the card and remember the pointer's position inside it.
+  const startDrag = (event) => {
     setDragging(true);
     setOffset({
-      x: e.clientX - pos.x,
-      y: e.clientY - pos.y
+      x: event.clientX - pos.x,
+      y: event.clientY - pos.y
     });
   };
 
-  const onDrag = (e) => {
+  // Move the card with the pointer while it is being dragged.
+  const onDrag = (event) => {
     if (!dragging) return;
     setPos({
-      x: e.clientX - offset.x,
-      y: e.clientY - offset.y
+      x: event.clientX - offset.x,
+      y: event.clientY - offset.y
     });
   };
 
+  // Stop dragging when the pointer is released or leaves the card.
   const stopDrag = () => {
     setDragging(false);
   };
 
-  // Backend call
+  // Ask the backend for a prediction using the two selected teams.
   const getPrediction = async () => {
     setLoading(true);
     setResult(null);
@@ -50,6 +50,7 @@ function PredictionForm() {
       const data = await response.json();
       setResult(data);
     } catch (error) {
+      // Show a readable message if the backend cannot be reached.
       setResult({ error: "Failed to reach backend" });
     }
 
@@ -57,48 +58,24 @@ function PredictionForm() {
   };
 
   return (
-    <>
-      {/* Draggable widget containing BOTH form and prediction card */}
-      <div
-        onMouseDown={startDrag}
-        onMouseMove={onDrag}
-        onMouseUp={stopDrag}
-        onMouseLeave={stopDrag}
-        style={{
-          position: "absolute",
-          left: pos.x,
-          top: pos.y,
-          cursor: "grab",
-          userSelect: "none",
-          width: "450px",
-          padding: "20px",
-          background: "#1e1e1e",
-          borderRadius: "12px",
-          boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
-          color: "white"
-        }}
-      >
-        <h2
-          style={{
-            textAlign: "center",
-            marginBottom: "20px",
-            fontSize: "26px",
-            fontWeight: "600"
-          }}
-        >
-          NFL Game Prediction
-        </h2>
+    <div
+      className={`prediction-widget${dragging ? " prediction-widget--dragging" : ""}`}
+      onMouseDown={startDrag}
+      onMouseMove={onDrag}
+      onMouseUp={stopDrag}
+      onMouseLeave={stopDrag}
+      style={{ transform: `translate(${pos.x}px, ${pos.y}px)` }}
+    >
+      <h2 className="prediction-widget__title">NFL Game Prediction</h2>
 
-        <label style={{ fontWeight: "bold" }}>Team 1</label>
+      {/* Let the user choose the first team from the shared team list. */}
+      <label className="prediction-field" htmlFor="team1">
+        <span className="prediction-field__label">Team 1</span>
         <select
+          id="team1"
+          className="prediction-field__select"
           value={team1}
-          onChange={(e) => setTeam1(e.target.value)}
-          style={{
-            display: "block",
-            marginBottom: "15px",
-            width: "100%",
-            padding: "8px"
-          }}
+          onChange={(event) => setTeam1(event.target.value)}
         >
           <option value="">Select Team 1</option>
           {TEAMS.map((team) => (
@@ -107,17 +84,16 @@ function PredictionForm() {
             </option>
           ))}
         </select>
+      </label>
 
-        <label style={{ fontWeight: "bold" }}>Team 2</label>
+      {/* Let the user choose the opponent. */}
+      <label className="prediction-field" htmlFor="team2">
+        <span className="prediction-field__label">Team 2</span>
         <select
+          id="team2"
+          className="prediction-field__select"
           value={team2}
-          onChange={(e) => setTeam2(e.target.value)}
-          style={{
-            display: "block",
-            marginBottom: "15px",
-            width: "100%",
-            padding: "8px"
-          }}
+          onChange={(event) => setTeam2(event.target.value)}
         >
           <option value="">Select Team 2</option>
           {TEAMS.map((team) => (
@@ -126,150 +102,70 @@ function PredictionForm() {
             </option>
           ))}
         </select>
+      </label>
 
-        <button
-          onClick={getPrediction}
-          disabled={loading || !team1 || !team2}
-          style={{
-            padding: "10px 15px",
-            cursor: "pointer",
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            width: "100%"
-          }}
-        >
-          {loading ? "Predicting..." : "Predict"}
-        </button>
+      {/* The button is enabled only after both teams are selected. */}
+      <button
+        className="prediction-button"
+        onClick={getPrediction}
+        disabled={loading || !team1 || !team2}
+      >
+        {loading ? "Predicting..." : "Predict"}
+      </button>
 
-        {/* Prediction card now INSIDE the draggable widget */}
-        {result && !result.error && (
-          <div
-            style={{
-              marginTop: "25px",
-              padding: "20px",
-              borderRadius: "12px",
-              background: "#2a2a2a",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.4)",
-              color: "white"
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px"
-              }}
-            >
-              <div style={{ textAlign: "center", width: "40%" }}>
-                <div style={{ fontSize: "22px", fontWeight: "700" }}>
-                  {result.team1}
-                </div>
-                <div
-                  style={{
-                    width: "70px",
-                    height: "70px",
-                    background: "#333",
-                    borderRadius: "50%",
-                    margin: "10px auto"
-                  }}
-                />
-              </div>
-
-              <div style={{ fontSize: "20px", fontWeight: "600" }}>VS</div>
-
-              <div style={{ textAlign: "center", width: "40%" }}>
-                <div style={{ fontSize: "22px", fontWeight: "700" }}>
-                  {result.team2}
-                </div>
-                <div
-                  style={{
-                    width: "70px",
-                    height: "70px",
-                    background: "#333",
-                    borderRadius: "50%",
-                    margin: "10px auto"
-                  }}
-                />
+      {/* Display the matchup, probability bar, and favored team on success. */}
+      {result && !result.error && (
+        <section className="prediction-result" aria-live="polite">
+          <div className="prediction-result__matchup">
+            <div className="prediction-result__team">
+              {result.team1}
+              <div className="prediction-result__badge" aria-hidden="true">
+                {result.team1}
               </div>
             </div>
-
-            <div style={{ marginTop: "20px" }}>
-              <div
-                style={{
-                  fontSize: "18px",
-                  marginBottom: "8px",
-                  fontWeight: "600"
-                }}
-              >
-                Win Probability ({result.team1})
+            <div className="prediction-result__versus">VS</div>
+            <div className="prediction-result__team">
+              {result.team2}
+              <div className="prediction-result__badge" aria-hidden="true">
+                {result.team2}
               </div>
-
-              <div
-                style={{
-                  height: "14px",
-                  width: "100%",
-                  background: "#444",
-                  borderRadius: "7px",
-                  overflow: "hidden"
-                }}
-              >
-                <div
-                  style={{
-                    width: `${result.probability * 100}%`,
-                    height: "100%",
-                    background: "#007bff"
-                  }}
-                />
-              </div>
-
-              <div
-                style={{
-                  marginTop: "10px",
-                  fontSize: "20px",
-                  fontWeight: "700",
-                  color: "#4da3ff"
-                }}
-              >
-                {(result.probability * 100).toFixed(1)}%
-              </div>
-            </div>
-
-            <div
-              style={{
-                marginTop: "20px",
-                padding: "10px",
-                background: "#3a3a3a",
-                borderRadius: "8px",
-                fontSize: "18px",
-                fontWeight: "600"
-              }}
-            >
-              {result.probability > 0.5
-                ? `${result.team1} is favored`
-                : `${result.team2} is favored`}
             </div>
           </div>
-        )}
 
-        {result && result.error && (
+          <p className="prediction-result__label">
+            Win Probability ({result.team1})
+          </p>
           <div
-            style={{
-              marginTop: "20px",
-              background: "#ffe5e5",
-              padding: "15px",
-              borderRadius: "4px",
-              color: "#b30000",
-              fontWeight: "bold"
-            }}
+            className="prediction-result__track"
+            role="progressbar"
+            aria-label={`${result.team1} win probability`}
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow={result.probability * 100}
           >
-            {result.error}
+            <div
+              className="prediction-result__fill"
+              style={{ width: `${result.probability * 100}%` }}
+            />
           </div>
-        )}
-      </div>
-    </>
+          <p className="prediction-result__percentage">
+            {(result.probability * 100).toFixed(1)}%
+          </p>
+          <p className="prediction-result__favorite">
+            {result.probability > 0.5
+              ? `${result.team1} is favored`
+              : `${result.team2} is favored`}
+          </p>
+        </section>
+      )}
+
+      {/* Announce backend errors so they are visible to all users. */}
+      {result && result.error && (
+        <div className="prediction-error" role="alert">
+          {result.error}
+        </div>
+      )}
+    </div>
   );
 }
 

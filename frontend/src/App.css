@@ -1,38 +1,408 @@
-.App {
+/* Set the page background and center the main dashboard content. */
+.dashboard {
+  min-height: 100vh;
+  padding: 0 24px 72px;
+  color: var(--color-text);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(35, 91, 73, 0.2), transparent 42%),
+    var(--color-page);
+}
+
+/* Style the heading and keep its text comfortably readable. */
+.dashboard__content {
+  width: min(100%, 760px);
+  margin: 0 auto;
+  padding-top: 56px;
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.dashboard__eyebrow {
+  margin: 0 0 12px;
+  color: var(--color-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.dashboard__title {
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 750;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.dashboard__subtitle {
+  max-width: 480px;
+  margin: 14px auto 34px;
+  color: var(--color-muted);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.dashboard__form {
+  width: min(100%, 520px);
+  margin: 0 auto;
+}
+
+/* The ticker frame and its scrolling row of game details. */
+.game-ticker {
+  width: min(100%, 1120px);
+  margin: 0 auto;
+  padding: 13px 18px;
+  overflow: hidden;
+  color: #d3ded9;
+  background: rgba(15, 25, 23, 0.78);
+  border: 1px solid rgba(157, 184, 171, 0.12);
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  font-size: 0.875rem;
+  font-weight: 550;
+}
+
+.game-ticker__message {
+  margin: 0;
+  color: #d3ded9;
+  text-align: center;
+}
+
+.game-ticker__error {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #ffd2d0;
 }
 
-.App-link {
-  color: #61dafb;
+.game-ticker__retry {
+  padding: 5px 11px;
+  color: #10251c;
+  background: var(--color-accent);
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
-@keyframes App-logo-spin {
+.game-ticker__retry:focus-visible {
+  outline: 3px solid rgba(104, 214, 159, 0.6);
+  outline-offset: 3px;
+}
+
+.game-ticker__track {
+  display: flex;
+  width: max-content;
+}
+
+.game-ticker__track--animated {
+  animation: ticker-scroll 34s linear infinite;
+}
+
+.game-ticker__group {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 34px;
+  padding-right: 34px;
+}
+
+.game-ticker:hover .game-ticker__track--animated {
+  animation-play-state: paused;
+}
+
+.game-ticker__game {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+
+.game-ticker__separator {
+  color: var(--color-accent);
+}
+
+/* Give the prediction form a raised card appearance. */
+.prediction-widget {
+  width: 100%;
+  padding: 30px;
+  color: var(--color-text);
+  text-align: left;
+  background: linear-gradient(145deg, rgba(27, 40, 37, 0.98), rgba(20, 30, 28, 0.98));
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.035);
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+  transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.prediction-widget:active {
+  cursor: grabbing;
+}
+
+.prediction-widget--dragging {
+  z-index: 1;
+  border-color: rgba(104, 214, 159, 0.44);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+}
+
+/* Style the team labels, selectors, and prediction button. */
+.prediction-widget__title {
+  margin: 0 0 26px;
+  color: #f4f8f6;
+  font-size: 1.35rem;
+  font-weight: 680;
+  letter-spacing: -0.025em;
+  text-align: center;
+}
+
+.prediction-field {
+  display: block;
+  margin-bottom: 18px;
+}
+
+.prediction-field__label {
+  display: block;
+  margin-bottom: 8px;
+  color: #c3d0ca;
+  font-size: 0.82rem;
+  font-weight: 650;
+  letter-spacing: 0.025em;
+}
+
+.prediction-field__select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  color: #f3f7f5;
+  background-color: #111b19;
+  border: 1px solid #344640;
+  border-radius: 10px;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.prediction-field__select:hover {
+  border-color: #587267;
+}
+
+.prediction-field__select:focus-visible,
+.prediction-button:focus-visible {
+  outline: 3px solid rgba(104, 214, 159, 0.45);
+  outline-offset: 3px;
+}
+
+.prediction-button {
+  width: 100%;
+  min-height: 49px;
+  margin-top: 2px;
+  padding: 12px 18px;
+  color: #10251c;
+  background: var(--color-accent);
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.prediction-button:hover:not(:disabled) {
+  background: #83e3b2;
+  box-shadow: 0 8px 24px rgba(72, 196, 132, 0.18);
+  transform: translateY(-1px);
+}
+
+.prediction-button:disabled {
+  color: #9eaaa5;
+  background: #35423d;
+  cursor: not-allowed;
+}
+
+/* Arrange the matchup and show the model's win probability. */
+.prediction-result {
+  margin-top: 26px;
+  padding: 22px;
+  background: rgba(9, 17, 15, 0.58);
+  border: 1px solid rgba(157, 184, 171, 0.15);
+  border-radius: 16px;
+  animation: result-enter 220ms ease-out both;
+}
+
+.prediction-result__matchup {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.prediction-result__team {
+  width: 40%;
+  color: #f4f8f6;
+  font-size: 1.05rem;
+  font-weight: 720;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.prediction-result__badge {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin: 12px auto 0;
+  place-items: center;
+  color: #96e9bd;
+  background: #20362e;
+  border: 1px solid #385847;
+  border-radius: 50%;
+  font-size: 0.76rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
+.prediction-result__versus {
+  color: #8d9d95;
+  font-size: 0.75rem;
+  font-weight: 750;
+  letter-spacing: 0.13em;
+}
+
+.prediction-result__label {
+  margin: 0 0 11px;
+  color: #c3d0ca;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.prediction-result__track {
+  height: 10px;
+  overflow: hidden;
+  background: #26332e;
+  border-radius: 99px;
+}
+
+.prediction-result__fill {
+  height: 100%;
+  background: linear-gradient(90deg, #39b877, #8de5b5);
+  border-radius: inherit;
+  transition: width 350ms ease;
+}
+
+.prediction-result__percentage {
+  margin: 11px 0 0;
+  color: #8de5b5;
+  font-size: 1.45rem;
+  font-weight: 760;
+  letter-spacing: -0.035em;
+}
+
+.prediction-result__favorite {
+  margin: 21px 0 0;
+  padding: 12px 14px;
+  color: #d8f3e4;
+  background: #20362e;
+  border: 1px solid rgba(104, 214, 159, 0.15);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 650;
+  text-align: center;
+}
+
+.prediction-error {
+  margin-top: 20px;
+  padding: 14px 16px;
+  color: #ffd2d0;
+  background: rgba(119, 43, 41, 0.28);
+  border: 1px solid rgba(239, 117, 109, 0.34);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* Bring new prediction results into view with a subtle fade and rise. */
+@keyframes result-enter {
   from {
-    transform: rotate(0deg);
+    opacity: 0;
+    transform: translateY(6px);
   }
+
   to {
-    transform: rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Move the duplicated game ticker row to create a repeating loop. */
+@keyframes ticker-scroll {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Reduce spacing and card padding on phones and narrow screens. */
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 0 16px 48px;
+  }
+
+  .dashboard__content {
+    padding-top: 42px;
+  }
+
+  .dashboard__subtitle {
+    margin-bottom: 26px;
+    font-size: 0.94rem;
+  }
+
+  .game-ticker {
+    padding: 12px 14px;
+    font-size: 0.82rem;
+  }
+
+  .prediction-widget {
+    padding: 23px 19px;
+    border-radius: 16px;
+  }
+
+  .prediction-result {
+    padding: 18px 15px;
+  }
+}
+
+/* Turn off moving effects for visitors who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .game-ticker__track {
+    width: 100%;
+    animation: none;
+  }
+
+  .game-ticker__group {
+    width: 100%;
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 12px 24px;
+    padding-right: 0;
+  }
+
+  .game-ticker__game {
+    white-space: normal;
+  }
+
+  .game-ticker__group[aria-hidden="true"] {
+    display: none;
   }
 }
