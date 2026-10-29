@@ -145,9 +145,12 @@ for game predictions and current-week schedules, and a React dashboard that
 connects to the API. The dashboard presents upcoming matchups and lets users
 compare teams using the model's predicted win probability.
 
+Created a Frontend dashboards for users to interact and create NFL game predictions.
 
 
 [Watch Milestone 1 on YouTube](https://youtu.be/Wqn1CApZlu8)
+
+[Watch Milestone 2 on YouTube](https://youtu.be/Nl2JEWxRAVQ)
 
 
 ## **Author**
