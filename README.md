@@ -38,13 +38,42 @@ These features capture team strength, momentum, and basic game context.
 ## **Tech Stack**
 **ML & Data:** Python, scikit‑learn, pandas, nfl_data_py  
 **Backend:** FastAPI, Uvicorn  
+**Frontend:** React 19, Create React App\
 **Tools:** VS Code, GitHub 
+
+---
+
+## **Frontend Dashboard**
+
+The React dashboard brings the prediction API into a simple game-day interface:
+
+- **Current-week game ticker:** Loads the NFL schedule from the backend and
+  displays each matchup with its date and kickoff time.
+- **Game predictions:** Choose two teams from the selectors and request a
+  prediction from the FastAPI backend. The result shows the matchup, the first
+  team's win probability, a visual probability bar, and which team is favored.
+- **Interactive and accessible states:** The prediction card can be dragged,
+  the Predict button is disabled until both teams are selected, and loading
+  and error messages are exposed to assistive technologies.
+- **Frontend tests:** React Testing Library tests cover the dashboard and the
+  schedule ticker's loading, empty, success, and retryable states.
+
+The frontend calls the backend at `http://127.0.0.1:8000`; run both servers
+locally as described in [Requirements and Local Setup](#requirements-and-local-setup).
 
 ---
 
 ## **Project Structure**
 ```
 sports-analytics-project/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── App.js
+│   │   ├── GameTicker.js
+│   │   └── PredictionForm.js
+│   ├── package.json
+│   └── package-lock.json
 │
 ├── analytics/
 │   ├── train.py
@@ -106,13 +135,15 @@ Call:
 
 ## **Future Improvements**
 - Include Vegas spread    
-- Build a React dashboard  
 - Add MLB support  
 
 ---
 
 ## **Current Progress**
-I’ve built the full machine‑learning pipeline for my NFL analytics project. The system loads real NFL data, engineers features via pandas, and trains a logistic regression model to predict home‑team win probabilities. I also set up a FastAPI backend with a endpoint that uses the trained model to generate results based on team inputs. At this point, the training pipeline and prediction engine are functional, and the next step is connecting everything to a frontend interface and refining my model further. 
+The project includes an NFL data and machine-learning pipeline, a FastAPI backend
+for game predictions and current-week schedules, and a React dashboard that
+connects to the API. The dashboard presents upcoming matchups and lets users
+compare teams using the model's predicted win probability.
 
 
 
@@ -122,3 +153,96 @@ I’ve built the full machine‑learning pipeline for my NFL analytics project. 
 ## **Author**
 **Jack D**  
 Computer Science Student — University of Wisconsin–River Falls  
+
+---
+
+## **Requirements and Local Setup**
+
+To run the complete dashboard on your own machine, install:
+
+- **Python 3.11** for the FastAPI backend and analytics code.
+- **Node.js and npm** for the frontend. The project does not pin a Node.js
+  version; use a current Node.js LTS release.
+- **Git** to clone the project and a modern web browser.
+- An internet connection so the backend can retrieve NFL schedule data using
+  `nfl_data_py`.
+
+The frontend uses **React `^19.3.0`** and Create React App (`react-scripts`
+5.0.1). Install its locked dependencies with `npm ci`.
+
+### **1. Get the project**
+
+Clone the repository and open its root directory:
+
+```bash
+git clone https://github.com/dehnedev/sports-analytics-platform.git
+cd sports-analytics-platform
+```
+
+### **2. Install and start the backend**
+
+From the project root, create a Python 3.11 virtual environment:
+
+```bash
+py -3.11 -m venv .venv
+```
+
+Activate it in Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+On macOS or Linux, create and activate the environment with:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+```
+
+Install the required Python packages:
+
+```bash
+python -m pip install --upgrade pip
+python -m pip install fastapi uvicorn nfl_data_py pandas scikit-learn joblib
+```
+
+Start the API from the project root and leave this terminal running:
+
+```bash
+python -m uvicorn backend.main:app --reload
+```
+
+The API is available at `http://127.0.0.1:8000`; its interactive docs are at
+[`http://127.0.0.1:8000/docs`](http://127.0.0.1:8000/docs).
+
+The trained model is included at `analytics/nfl_model.pkl`, so you do not need
+to train it for a normal run. To train or recreate the model, use the activated
+Python environment from the project root:
+
+```bash
+py -3.11 analytics/train.py
+```
+
+On macOS or Linux, run `python3.11 analytics/train.py` instead.
+
+### **3. Install and start the frontend**
+
+Open a second terminal and change to the frontend directory:
+
+```bash
+cd frontend
+npm ci
+npm start
+```
+
+The dashboard opens at [`http://localhost:3000`](http://localhost:3000). Keep
+both the frontend and backend terminals running while using it.
+
+To run frontend tests or create a production build, use these commands from
+the `frontend` directory:
+
+```bash
+npm test
+npm run build
+```
