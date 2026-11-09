@@ -51,7 +51,9 @@ The React dashboard brings the prediction API into a simple game-day interface:
   displays each matchup with its date and kickoff time.
 - **Game predictions:** Choose two teams from the selectors and request a
   prediction from the FastAPI backend. The result shows the matchup, the first
-  team's win probability, a visual probability bar, and which team is favored.
+  team's win probability, team logos, a visual probability bar, and which team
+  is favored. All 32 NFL teams are available in the selectors; logos are loaded
+  from ESPN's team-logo CDN.
 - **Interactive and accessible states:** The prediction card can be dragged,
   the Predict button is disabled until both teams are selected, and loading
   and error messages are exposed to assistive technologies.

@@ -40,8 +40,8 @@ def add_rolling_point_diff(df):
     # Compute point differential for each game
     df['point_diff'] = df['home_score'] - df['away_score']
 
-    # Sort by team and week 
-    df = df.sort_values(['home_team', 'week'])
+    # Keep both home- and away-team rolling features in game order.
+    df = df.sort_values(['gameday', 'game_id'])
 
     # Rolling average for home team
     df['home_point_diff_last3'] = (

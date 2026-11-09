@@ -265,6 +265,13 @@
   letter-spacing: 0.08em;
 }
 
+.prediction-result__logo {
+  display: block;
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
 .prediction-result__versus {
   color: #8d9d95;
   font-size: 0.75rem;

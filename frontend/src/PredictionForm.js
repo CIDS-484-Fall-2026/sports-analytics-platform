@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { TEAMS } from "./teams";
+
+const getTeam = (teamValue) =>
+  TEAMS.find((team) => team.abbr === teamValue || team.name === teamValue);
 
 function PredictionForm() {
   // Remember which teams the user selected and the latest prediction response.
@@ -117,28 +120,39 @@ function PredictionForm() {
       {result && !result.error && (
         <section className="prediction-result" aria-live="polite">
           <div className="prediction-result__matchup">
-            <div className="prediction-result__team">
-              {result.team1}
-              <div className="prediction-result__badge" aria-hidden="true">
-                {result.team1}
-              </div>
-            </div>
-            <div className="prediction-result__versus">VS</div>
-            <div className="prediction-result__team">
-              {result.team2}
-              <div className="prediction-result__badge" aria-hidden="true">
-                {result.team2}
-              </div>
-            </div>
+            {[result.team1, result.team2].map((teamValue, index) => {
+              const team = getTeam(teamValue);
+              return (
+                <Fragment key={`${teamValue}-${index}`}>
+                  {index === 1 && (
+                    <div className="prediction-result__versus">VS</div>
+                  )}
+                  <div className="prediction-result__team">
+                    {team ? team.name : teamValue}
+                    <div className="prediction-result__badge">
+                      {team ? (
+                        <img
+                          className="prediction-result__logo"
+                          src={`https://a.espncdn.com/i/teamlogos/nfl/500/${team.logo}.png`}
+                          alt={`${team.name} logo`}
+                        />
+                      ) : (
+                        teamValue
+                      )}
+                    </div>
+                  </div>
+                </Fragment>
+              );
+            })}
           </div>
 
           <p className="prediction-result__label">
-            Win Probability ({result.team1})
+            Win Probability ({getTeam(result.team1)?.name || result.team1})
           </p>
           <div
             className="prediction-result__track"
             role="progressbar"
-            aria-label={`${result.team1} win probability`}
+            aria-label={`${getTeam(result.team1)?.name || result.team1} win probability`}
             aria-valuemin="0"
             aria-valuemax="100"
             aria-valuenow={result.probability * 100}
@@ -153,8 +167,8 @@ function PredictionForm() {
           </p>
           <p className="prediction-result__favorite">
             {result.probability > 0.5
-              ? `${result.team1} is favored`
-              : `${result.team2} is favored`}
+              ? `${getTeam(result.team1)?.name || result.team1} is favored`
+              : `${getTeam(result.team2)?.name || result.team2} is favored`}
           </p>
         </section>
       )}
