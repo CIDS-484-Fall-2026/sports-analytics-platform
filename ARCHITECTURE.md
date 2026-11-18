@@ -53,8 +53,8 @@ flowchart LR
 
     PredictRoute --> ModelLogic
     ModelLogic -->|load and prepare games| Loader
-    Loader -->|import_schedules([2023])| NFLverse
-    ModelLogic -->|predict_proba(features)| Model
+    Loader -->|load 2023 schedules| NFLverse
+    ModelLogic -->|predict using features| Model
     ModelLogic -->|team names and probability| PredictRoute
     PredictRoute -->|prediction JSON or error JSON| Prediction
 ```
