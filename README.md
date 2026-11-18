@@ -54,6 +54,10 @@ The React dashboard brings the prediction API into a simple game-day interface:
   team's win probability, team logos, a visual probability bar, and which team
   is favored. All 32 NFL teams are available in the selectors; logos are loaded
   from ESPN's team-logo CDN.
+- **Vegas spread comparison:** Optionally enter a Vegas spread from Team 1's
+  perspective (negative favors Team 1; positive favors Team 2). The result
+  compares the line's favorite with the model's favorite. Spreads are entered
+  manually; the project does not currently have an odds feed.
 - **Interactive and accessible states:** The prediction card can be dragged,
   the Predict button is disabled until both teams are selected, and loading
   and error messages are exposed to assistive technologies.
@@ -93,6 +97,9 @@ sports-analytics-project/
 ---
 
 ## **How It Works**
+
+For a full Mermaid diagram of the frontend, backend, analytics pipeline, model,
+and request flows, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ### **1. Load Data**  
 Pull NFL schedules and scores using `nfl_data_py`.
@@ -136,7 +143,7 @@ Call:
 ---
 
 ## **Future Improvements**
-- Include Vegas spread    
+- Integrate a live Vegas odds feed
 - Add MLB support  
 
 ---

@@ -61,3 +61,60 @@ test("shows the selected teams' logos and full labels in the prediction", async 
   ).toBeInTheDocument();
   expect(global.fetch).toHaveBeenCalledTimes(1);
 });
+
+test("compares a manually entered Vegas spread with the model's favorite", async () => {
+  jest.spyOn(global, "fetch").mockResolvedValue({
+    json: async () => ({
+      team1: "LA",
+      team2: "ARI",
+      probability: 0.6,
+    }),
+  });
+
+  render(<PredictionForm />);
+  fireEvent.change(screen.getByLabelText("Team 1"), {
+    target: { value: "LA" },
+  });
+  fireEvent.change(screen.getByLabelText("Team 2"), {
+    target: { value: "ARI" },
+  });
+  fireEvent.change(screen.getByLabelText(/Vegas spread/), {
+    target: { value: "-3.5" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Predict" }));
+
+  expect(
+    await screen.findByText("The Vegas spread and model favor the same team.")
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/Vegas favors Los Angeles Rams by 3.5 points/)
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/Los Angeles Rams favored \(60.0% win probability\)/)
+  ).toBeInTheDocument();
+});
+
+test("explains the comparison when no Vegas spread is supplied", async () => {
+  jest.spyOn(global, "fetch").mockResolvedValue({
+    json: async () => ({
+      team1: "LA",
+      team2: "ARI",
+      probability: 0.6,
+    }),
+  });
+
+  render(<PredictionForm />);
+  fireEvent.change(screen.getByLabelText("Team 1"), {
+    target: { value: "LA" },
+  });
+  fireEvent.change(screen.getByLabelText("Team 2"), {
+    target: { value: "ARI" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Predict" }));
+
+  expect(
+    await screen.findByText(
+      "No Vegas spread entered. Add one above to compare it with the model."
+    )
+  ).toBeInTheDocument();
+});

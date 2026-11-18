@@ -8,6 +8,7 @@ function PredictionForm() {
   // Remember which teams the user selected and the latest prediction response.
   const [team1, setTeam1] = useState("");
   const [team2, setTeam2] = useState("");
+  const [vegasSpread, setVegasSpread] = useState("");
   const [result, setResult] = useState(null);
   // Use this flag to show progress and prevent another request while loading.
   const [loading, setLoading] = useState(false);
@@ -78,7 +79,10 @@ function PredictionForm() {
           id="team1"
           className="prediction-field__select"
           value={team1}
-          onChange={(event) => setTeam1(event.target.value)}
+          onChange={(event) => {
+            setTeam1(event.target.value);
+            setVegasSpread("");
+          }}
         >
           <option value="">Select Team 1</option>
           {TEAMS.map((team) => (
@@ -96,7 +100,10 @@ function PredictionForm() {
           id="team2"
           className="prediction-field__select"
           value={team2}
-          onChange={(event) => setTeam2(event.target.value)}
+          onChange={(event) => {
+            setTeam2(event.target.value);
+            setVegasSpread("");
+          }}
         >
           <option value="">Select Team 2</option>
           {TEAMS.map((team) => (
@@ -105,6 +112,23 @@ function PredictionForm() {
             </option>
           ))}
         </select>
+      </label>
+
+      <label className="prediction-field" htmlFor="vegas-spread">
+        <span className="prediction-field__label">Vegas spread (Team 1 perspective)</span>
+        <input
+          id="vegas-spread"
+          className="prediction-field__input"
+          type="number"
+          step="0.5"
+          value={vegasSpread}
+          onChange={(event) => setVegasSpread(event.target.value)}
+          placeholder="Optional, e.g. -3.5"
+          aria-describedby="vegas-spread-help"
+        />
+        <span className="prediction-field__help" id="vegas-spread-help">
+          Optional. A negative number favors Team 1; a positive number favors Team 2.
+        </span>
       </label>
 
       {/* The button is enabled only after both teams are selected. */}
@@ -167,9 +191,56 @@ function PredictionForm() {
           </p>
           <p className="prediction-result__favorite">
             {result.probability > 0.5
-              ? `${getTeam(result.team1)?.name || result.team1} is favored`
-              : `${getTeam(result.team2)?.name || result.team2} is favored`}
+              ? `${getTeam(result.team1)?.name || result.team1} are favored`
+              : `${getTeam(result.team2)?.name || result.team2} are favored`}
           </p>
+
+          <section className="prediction-comparison" aria-labelledby="prediction-comparison-title">
+            <h3 className="prediction-comparison__title" id="prediction-comparison-title">
+              Vegas spread vs. model
+            </h3>
+            {vegasSpread === "" || !Number.isFinite(Number(vegasSpread)) ? (
+              <p className="prediction-comparison__detail">
+                No Vegas spread entered. Add one above to compare it with the model.
+              </p>
+            ) : (
+              (() => {
+                const spread = Number(vegasSpread);
+                const firstTeam = getTeam(result.team1)?.name || result.team1;
+                const secondTeam = getTeam(result.team2)?.name || result.team2;
+                const modelSide =
+                  result.probability > 0.5 ? 1 : result.probability < 0.5 ? -1 : 0;
+                const vegasSide = spread < 0 ? 1 : spread > 0 ? -1 : 0;
+                const vegasFavorite = vegasSide === 1 ? firstTeam : secondTeam;
+                const modelFavorite = modelSide === 1 ? firstTeam : secondTeam;
+
+                return (
+                  <>
+                    <p className="prediction-comparison__detail">
+                      Vegas line: {spread > 0 ? "+" : ""}
+                      {spread} points for Team 1.{" "}
+                      {vegasSide === 0
+                        ? "The line is pick'em."
+                        : `Vegas favors ${vegasFavorite} by ${Math.abs(spread)} points.`}
+                    </p>
+                    <p className="prediction-comparison__detail">
+                      Model:{" "}
+                      {modelSide === 0
+                        ? `even at ${(result.probability * 100).toFixed(1)}%`
+                        : `${modelFavorite} favored (${(result.probability * 100).toFixed(1)}% win probability).`}
+                    </p>
+                    {vegasSide !== 0 && modelSide !== 0 && (
+                      <p className="prediction-comparison__verdict" role="status">
+                        {vegasSide === modelSide
+                          ? "The Vegas spread and model favor the same team."
+                          : "The Vegas spread and model favor different teams."}
+                      </p>
+                    )}
+                  </>
+                );
+              })()
+            )}
+          </section>
         </section>
       )}
 

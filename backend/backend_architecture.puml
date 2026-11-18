@@ -1,0 +1,181 @@
+@startuml BackendArchitecture
+title NFL Backend - Component Overview
+left to right direction
+skinparam componentStyle rectangle
+
+actor "Frontend / API client" as Client
+
+package "FastAPI application (backend/main.py)" {
+  component "FastAPI app" as App
+  component "CORS middleware\n(origins: *, credentials: *,\nmethods: *, headers: *)" as CORS
+  component "GET /nfl/predict\nteam1, team2" as PredictRoute
+  component "GET /nfl/current-week" as ScheduleRoute
+}
+
+package "Prediction (backend/nfl_model.py)" {
+  component "predict_nfl_game()" as Predict
+  component "Team feature lookup\nand feature vector" as Features
+  component "Trained classifier\n(analytics/nfl_model.pkl)" as Model
+}
+
+package "Schedule (backend/schedule.py)" {
+  component "get_current_week_schedule()" as GetSchedule
+  component "Season schedule loader\n6-hour worker cache" as ScheduleCache
+}
+
+component "analytics.nfl_data_loader" as DataLoader
+component "nfl_data_py / nflverse\nseason schedules" as NFLverse
+
+Client --> CORS : HTTP request
+CORS --> App
+App --> PredictRoute
+App --> ScheduleRoute
+PredictRoute --> Predict : team1, team2
+Predict --> Features
+Features --> DataLoader : load historical games\nand derive features
+Features --> Model : predict_proba(features)
+Predict --> PredictRoute : team names + probability\nor unknown-team error
+ScheduleRoute --> GetSchedule
+GetSchedule --> ScheduleCache : load season
+ScheduleCache --> NFLverse : import_schedules([season])\non cache miss / expiry
+GetSchedule --> ScheduleRoute : season, week, games
+PredictRoute --> CORS : prediction JSON or error JSON
+ScheduleRoute --> CORS : schedule JSON or HTTP 503
+CORS --> Client : HTTP response
+
+note right of Predict
+  Model and historical game features
+  are loaded/prepared when nfl_model.py
+  is imported.
+end note
+@enduml
+
+@startuml FullStackArchitecture
+title NFL Sports Analytics - Frontend to Backend Overview
+left to right direction
+skinparam componentStyle rectangle
+
+actor "Browser user" as User
+
+package "React frontend (frontend/src)" {
+  component "index.js\nReact root" as ReactRoot
+  component "App.js\nDashboard layout" as App
+  component "GameTicker.js\nCurrent-week schedule UI" as Ticker
+  component "PredictionForm.js\nTeam selectors and results" as PredictionForm
+  component "teams.js\nTeam names, abbreviations,\nand ESPN logo keys" as Teams
+}
+
+package "FastAPI backend (backend)" {
+  component "main.py\nFastAPI app and CORS" as Main
+  component "GET /nfl/current-week" as ScheduleRoute
+  component "GET /nfl/predict\nteam1, team2" as PredictRoute
+  component "schedule.py\nSeason and week lookup\n6-hour cache" as Schedule
+  component "nfl_model.py\nFeature lookup and prediction" as ModelLogic
+}
+
+package "Analytics and external data" {
+  component "nfl_data_loader.py\n2023 schedule feature preparation" as DataLoader
+  component "analytics/nfl_model.pkl\nTrained classifier" as Model
+  component "nfl_data_py / nflverse\nSeason schedules" as NFLverse
+}
+
+component "ESPN team-logo CDN" as ESPN
+
+User --> ReactRoot : open application
+ReactRoot --> App : render
+App --> Ticker : render
+App --> PredictionForm : render
+PredictionForm --> Teams : select team names\nand abbreviations
+Teams --> ESPN : request logo images\nby team logo key
+Ticker --> Main : GET /nfl/current-week
+PredictionForm --> Main : GET /nfl/predict\nteam1, team2
+Main --> ScheduleRoute
+Main --> PredictRoute
+ScheduleRoute --> Schedule
+Schedule --> NFLverse : import_schedules([season])\non cache miss or expiry
+PredictRoute --> ModelLogic
+ModelLogic --> DataLoader : load and prepare\n2023 NFL games
+DataLoader --> NFLverse : import_schedules([2023])
+ModelLogic --> Model : predict_proba(features)
+Schedule --> ScheduleRoute : season, week, games
+ModelLogic --> PredictRoute : team names and probability\nor unknown-team error
+ScheduleRoute --> Ticker : schedule JSON or HTTP 503
+PredictRoute --> PredictionForm : prediction JSON
+
+note right of PredictionForm
+  The Vegas spread is handled only in
+  the frontend for comparison with
+  the model result. It is not sent
+  to the backend.
+end note
+@enduml
+
+@startuml PredictionRequest
+title NFL Prediction Request Flow
+
+actor "Frontend / API client" as Client
+participant "CORS middleware" as CORS
+participant "FastAPI route\nGET /nfl/predict" as Route
+participant "predict_nfl_game()" as Predictor
+participant "Prepared historical\nteam features" as Features
+participant "Trained classifier" as Model
+
+Client -> CORS : GET /nfl/predict?team1=...&team2=...
+CORS -> Route : forward request
+Route -> Predictor : predict_nfl_game(team1, team2)
+Predictor -> Features : look up each team's latest features
+
+alt either team is not found
+  Features --> Predictor : missing team features
+  Predictor --> Route : error, team1, team2
+  Route --> CORS : JSON error response
+else both teams are found
+  Features --> Predictor : win percentages and\nlast-3 point differentials
+  Predictor -> Model : predict_proba([score_diff,\nwin rates, home flag,\npoint differentials])
+  Model --> Predictor : probability
+  Predictor --> Route : team1, team2, probability
+  Route --> CORS : prediction JSON
+end
+
+CORS --> Client : HTTP response
+@enduml
+
+@startuml CurrentWeekScheduleRequest
+title Current-Week Schedule Request Flow
+
+actor "Frontend / API client" as Client
+participant "CORS middleware" as CORS
+participant "FastAPI route\nGET /nfl/current-week" as Route
+participant "get_current_week_schedule()" as Schedule
+participant "Season loader\nand 6-hour cache" as Cache
+participant "nfl_data_py / nflverse" as DataSource
+
+Client -> CORS : GET /nfl/current-week
+CORS -> Route : forward request
+Route -> Schedule : get_current_week_schedule()
+Schedule -> Schedule : determine season and\nfirst unfinished schedule week
+Schedule -> Cache : load_season_schedule(season)
+
+alt cached schedule is fresh
+  Cache --> Schedule : cached season schedule
+else cache miss or expired
+  Cache -> DataSource : import_schedules([season])
+  DataSource --> Cache : season schedule
+  Cache --> Schedule : loaded season schedule
+end
+
+alt schedule has a remaining game
+  Schedule --> Route : season, week, games\n(away, home, date, time)
+  Route --> CORS : schedule JSON
+else no remaining games
+  Schedule --> Route : season, week=null, games=[]
+  Route --> CORS : empty schedule JSON
+end
+
+opt schedule retrieval raises an exception
+  Schedule --> Route : exception
+  Route --> CORS : HTTP 503\n"The NFL schedule is temporarily unavailable."
+end
+
+CORS --> Client : HTTP response
+@enduml
